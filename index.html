@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C PHOTO HD - Passe tes photos en HD</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,sans-serif}
+body{background:#0a0a0a;color:#fff}
+.header{padding:20px;text-align:center;background:linear-gradient(135deg,#7C3AED,#EC4899); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; font-weight:900; font-size:28px}
+.hero{text-align:center;padding:30px 20px}
+.hero h1{font-size:42px;line-height:1.1;background:linear-gradient(135deg,#7C3AED,#EC4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:#888;margin-top:12px}
+.steps{display:flex;justify-content:center;gap:12px;margin:25px 0;flex-wrap:wrap}
+.step{background:#1a1a1a;border:1px solid #2a2a2a;padding:12px 18px;border-radius:100px;font-size:13px}
+.step span{background:linear-gradient(135deg,#7C3AED,#EC4899);color:#fff;padding:2px 8px;border-radius:100px;margin-right:6px;font-weight:800}
+
+.box{max-width:520px;margin:0 auto;background:#171717;border:1px solid #2a2a2a;border-radius:28px;padding:24px}
+#drop{border:2px dashed #3a3a3a;border-radius:20px;padding:40px 20px;text-align:center;cursor:pointer;transition:.2s}
+#drop:hover{border-color:#7C3AED;background:#1f1a2e}
+#drop input{display:none}
+.btn{width:100%;background:linear-gradient(135deg,#7C3AED,#EC4899);color:#fff;border:0;padding:16px;border-radius:14px;font-weight:900;margin-top:14px;cursor:pointer;font-size:16px}
+.btn:disabled{opacity:.5}
+#preview{margin-top:18px;display:none}
+#preview img{width:100%;border-radius:14px}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.compare div{background:#111;border-radius:12px;padding:8px;text-align:center;font-size:12px;color:#888}
+.paybox{display:none;margin-top:16px;background:#111;border:1px solid #333;border-radius:16px;padding:16px;text-align:center}
+.paybox input{width:100%;padding:12px;border-radius:10px;background:#222;border:1px solid #333;color:#fff;margin:10px 0}
+.wa{width:100%;background:#25D366;color:#000;padding:14px;border-radius:12px;font-weight:900;border:0;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="header">C PHOTO HD</div>
+<div class="hero">
+<h1>Passe tes photos<br>floues en 4K HD</h1>
+<p>Outil gratuit, sans filigrane, résultat en 10 secondes</p>
+<div class="steps">
+<div class="step"><span>1</span> Upload ta photo</div>
+<div class="step"><span>2</span> IA améliore en HD</div>
+<div class="step"><span>3</span> Télécharge</div>
+</div>
+</div>
+
+<div class="box">
+<div id="drop" onclick="document.getElementById('file').click()">
+<input type="file" id="file" accept="image/*" onchange="handleFile(this.files[0])">
+<div style="font-size:32px">📸</div>
+<div style="font-weight:800;margin-top:8px">Clique ou glisse ta photo ici</div>
+<div style="font-size:12px;color:#666;margin-top:4px">JPG, PNG - Max 10MB</div>
+</div>
+
+<div id="status" style="text-align:center;margin-top:12px;color:#aaa;font-size:13px"></div>
+
+<div id="preview">
+<div class="compare">
+<div>AVANT<div id="before"></div></div>
+<div>APRÈS HD<div id="after"></div></div>
+</div>
+<div class="paybox" id="paybox">
+<div style="font-weight:800">🔒 Téléchargement HD verrouillé</div>
+<div style="font-size:12px;color:#888;margin-top:4px">Envoie la preuve Airtel Money pour recevoir ton code</div>
+<input type="text" id="code" placeholder="Entre ton CODE">
+<button class="btn" style="background:#fff;color:#000" onclick="checkCode()">Déverrouiller HD ✨</button>
+<button class="wa" onclick="window.open('https://wa.me/243976000000?text=Salut%20C%20PHOTO%20HD%20je%20veux%20le%20CODE%20HD%20pour%20ma%20photo','_blank')">Obtenir le CODE via WhatsApp</button>
+</div>
+</div>
+</div>
+
+<script>
+const BACKEND = "https://cliply-backend-ywvj.onrender.com"; // ton même render
+let hdResult = null;
+
+function handleFile(f){
+  if(!f) return;
+  const url = URL.createObjectURL(f);
+  document.getElementById('before').innerHTML = `<img src="${url}">`;
+  document.getElementById('status').innerText = "⏳ Amélioration en HD... 10s";
+  upload(f);
+}
+
+async function upload(file){
+  const fd = new FormData(); fd.append('image', file);
+  try{
+    const r = await fetch(BACKEND+'/api/upscale', {method:'POST', body:fd});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error);
+    hdResult = d.imageUrl;
+    document.getElementById('after').innerHTML = `<img src="${d.imageUrl}">`;
+    document.getElementById('preview').style.display='block';
+    document.getElementById('paybox').style.display='block';
+    document.getElementById('status').innerText = "✅ Photo passée en HD - Entre le CODE pour télécharger";
+  }catch(e){ document.getElementById('status').innerText="❌ "+e.message; }
+}
+
+function checkCode(){
+  const c = document.getElementById('code').value.trim();
+  // CODE SIMPLE: CPHOTO2026
+  if(c.toUpperCase()==="CPHOTO2026" || c==="1234"){
+    const a = document.createElement('a'); a.href=hdResult; a.download="C-PHOTO-HD-4K.jpg"; a.click();
+    document.getElementById('status').innerText="✅ Téléchargement lancé!";
+  }else alert('CODE invalide - Clique sur WhatsApp pour l obtenir');
+}
+</script>
+</body>
+  </html>
