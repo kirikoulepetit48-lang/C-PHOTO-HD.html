@@ -1,57 +1,321 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>C PHOTO HD x3</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
 body{background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;padding:20px}
-h1{font-size:2.8rem}h1 span{color:#c8a96a}
-.box{border:2px dashed #555;width:100%;max-width:500px;height:340px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:#111;cursor:pointer;overflow:hidden;position:relative}
+h1{font-size:3rem}h1 span{color:#c8a96a}
+.box{border:2px dashed #555;width:100%;max-width:500px;height:340px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:#111;cursor:pointer;overflow:hidden;position:relative;margin-top:15px}
 .box img{width:100%;height:100%;object-fit:cover;display:none;position:absolute}
-.btn{background:#c8a96a;color:#000;padding:17px 40px;border-radius:30px;font-weight:900;border:none;margin-top:20px;cursor:pointer}
+.btn{background:#c8a96a;color:#000;padding:18px 45px;border-radius:35px;font-weight:900;border:none;margin-top:20px;cursor:pointer;font-size:1.2rem;display:block;text-align:center;text-decoration:none}
+.btn2{background:transparent;border:2px solid #c8a96a;color:#c8a96a;width:100%;margin-top:10px}
 .res{width:100%;max-width:900px;display:none;grid-template-columns:1fr 1fr;gap:15px;margin-top:25px}
-.card{background:#111;padding:10px;border-radius:16px}.card img{width:100%;border-radius:12px}
+.card{background:#111;padding:10px;border-radius:16px;position:relative}
+.card img{width:100%;border-radius:12px}
+.blur{filter:blur(12px)}
+.lock{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.85);padding:15px 20px;border-radius:15px;text-align:center;border:1px solid #c8a96a;z-index:2}
+.price{background:#111;border:1px solid #333;padding:12px;border-radius:12px;margin-top:15px;text-align:center;max-width:500px;width:100%}
 </style>
 </head>
 <body>
+
 <h1>C PHOTO <span>HD x3</span></h1>
-<p style="color:#777;margin-bottom:15px">HD x3 - NIVEAU SUPÉRIEUR</p>
-<div class="box" id="box" onclick="file.click()"><p id="txt">📸 Choisis photo</p><img id="prev"></div>
+<p style="color:#777">HD ULTRA - 2000 FC</p>
+
+<div class="box" id="box" onclick="file.click()">
+<p id="txt">📸 Choisis photo</p>
+<img id="prev">
+</div>
+
 <input type="file" id="file" hidden accept="image/*">
 <button class="btn" id="go">AMÉLIORER x3</button>
 <p id="stat" style="margin-top:15px;color:#c8a96a;font-weight:bold"></p>
-<div class="res" id="res">
-<div class="card"><p>AVANT</p><img id="before"></div>
-<div class="card"><p>APRÈS x3</p><img id="after"><a id="dl" class="btn" style="display:block;text-align:center;margin-top:10px;text-decoration:none" download="C-PHOTO-x3.jpg">📥 TÉLÉCHARGER x3</a></div>
+
+<div class="price">
+💰 Prix HD x3: <b style="color:#c8a96a">2000 FC</b> | Paiement WhatsApp
 </div>
+
+<div class="res" id="res">
+  <div class="card">
+    <p>AVANT</p>
+    <img id="before">
+  </div>
+  <div class="card">
+    <p>APRÈS x3 <span style="color:#c8a96a">HD</span></p>
+    <div style="position:relative">
+      <img id="after" class="blur">
+      <div class="lock" id="lockBox">
+        <p>🔒 HD BLOQUÉ</p>
+        <p style="font-size:0.8rem;margin:5px 0">Paye 2000 FC pour débloquer</p>
+      </div>
+    </div>
+    <a id="wa" class="btn" style="margin-top:10px;background:#25D366;color:#fff" target="_blank">
+      💬 PAYER 2000 FC SUR WHATSAPP
+    </a>
+    <a id="dl" class="btn" style="display:none;margin-top:10px" download="C-PHOTO-HD-x3.jpg">
+      📥 TÉLÉCHARGER HD x3
+    </a>
+    <button class="btn btn2" id="restart">🔄 RECOMMENCER</button>
+  </div>
+</div>
+
 <canvas id="canvas" style="display:none"></canvas>
+
 <script>
-const file=document.getElementById('file'), prev=document.getElementById('prev'), txt=document.getElementById('txt'), before=document.getElementById('before'), after=document.getElementById('after'), res=document.getElementById('res'), stat=document.getElementById('stat'), go=document.getElementById('go'), canvas=document.getElementById('canvas'), ctx=canvas.getContext('2d');
+const file=document.getElementById('file');
+const prev=document.getElementById('prev');
+const txt=document.getElementById('txt');
+const before=document.getElementById('before');
+const after=document.getElementById('after');
+const res=document.getElementById('res');
+const stat=document.getElementById('stat');
+const go=document.getElementById('go');
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const restart=document.getElementById('restart');
+const wa=document.getElementById('wa');
+const dl=document.getElementById('dl');
+const lockBox=document.getElementById('lockBox');
+
 let loadedImg=null;
+let finalURL='';
+const MYNUM='243979312394';
+
 file.onchange=e=>{
- const f=e.target.files[0]; if(!f)return;
+ const f=e.target.files[0];
+ if(!f) return;
  const r=new FileReader();
  r.onload=ev=>{
-  prev.src=ev.target.result; prev.style.display='block'; txt.style.display='none'; before.src=ev.target.result;
-  loadedImg=new Image(); loadedImg.onload=()=>stat.textContent='Prêt ✅ Clique AMÉLIORER x3'; loadedImg.src=ev.target.result;
- }; r.readAsDataURL(f);
+  prev.src=ev.target.result;
+  prev.style.display='block';
+  txt.style.display='none';
+  before.src=ev.target.result;
+  loadedImg=new Image();
+  loadedImg.onload=()=>stat.textContent='Prêt ✅ Clique x3';
+  loadedImg.src=ev.target.result;
+ };
+ r.readAsDataURL(f);
 };
+
 go.onclick=()=>{
  if(!loadedImg){alert('Choisis photo');return;}
- stat.textContent='HD x3 en cours... 3 secondes...'; go.disabled=true;
+ stat.textContent='HD x3 en cours...';
+ go.disabled=true;
  setTimeout(()=>{
-  let w=loadedImg.width*3, h=loadedImg.height*3;
-  if(w>3000){h=h*3000/w; w=3000;} // limite pour ne pas faire ramer le téléphone
-  canvas.width=w; canvas.height=h;
-  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  ctx.filter='contrast(1.2) brightness(1.07) saturate(1.3)';
+  let w=loadedImg.width*3;
+  let h=loadedImg.height*3;
+  if(w>3000){h=h*3000/w; w=3000;}
+  canvas.width=w;
+  canvas.height=h;
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  ctx.filter='contrast(1.22) brightness(1.08) saturate(1.3)';
   ctx.drawImage(loadedImg,0,0,w,h);
-  const url=canvas.toDataURL('image/jpeg',0.96);
-  after.src=url; document.getElementById('dl').href=url; res.style.display='grid';
-  stat.textContent='Terminé ✅ HD x3 NIVEAU SUPÉRIEUR!'; go.disabled=false;
- }, 600);
+  finalURL=canvas.toDataURL('image/jpeg',0.96);
+  after.src=finalURL;
+  dl.href=finalURL;
+  res.style.display='grid';
+  stat.textContent='Aperçu prêt ✅ Paye 2000 FC pour débloquer';
+  go.disabled=false;
+  const msg=encodeURIComponent("Salut C PHOTO HD 👋 Je veux débloquer ma photo HD x3 pour 2000 FC. Comment payer?");
+  wa.href=`https://wa.me/${MYNUM}?text=${msg}`;
+ },700);
+};
+
+wa.onclick=()=>{
+ setTimeout(()=>{
+  if(confirm("Le client a payé les 2000 FC sur WhatsApp? Clique OK pour débloquer")){
+   after.classList.remove('blur');
+   lockBox.style.display='none';
+   dl.style.display='block';
+   wa.textContent='✅ PAIEMENT REÇU';
+   wa.style.background='#666';
+  }
+ },800);
+};
+
+restart.onclick=()=>{
+ prev.src='';
+ prev.style.display='none';
+ txt.style.display='block';
+ before.src='';
+ after.src='';
+ finalURL='';
+ res.style.display='none';
+ stat.textContent='';
+ file.value='';
+ loadedImg=null;
+ after.classList.add('blur');
+ lockBox.style.display='block';
+ dl.style.display='none';
+ wa.textContent='💬 PAYER 2000 FC SUR WHATSAPP';
+ wa.style.background='#25D366';
+ window.scrollTo({top:0,behavior:'smooth'});
 };
 </script>
+
 </body>
-</html>
+     </html><!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C PHOTO HD x3</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
+body{background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;padding:20px}
+h1{font-size:3rem}h1 span{color:#c8a96a}
+.box{border:2px dashed #555;width:100%;max-width:500px;height:340px;border-radius:22px;display:flex;align-items:center;justify-content:center;background:#111;cursor:pointer;overflow:hidden;position:relative;margin-top:15px}
+.box img{width:100%;height:100%;object-fit:cover;display:none;position:absolute}
+.btn{background:#c8a96a;color:#000;padding:18px 45px;border-radius:35px;font-weight:900;border:none;margin-top:20px;cursor:pointer;font-size:1.2rem;display:block;text-align:center;text-decoration:none}
+.btn2{background:transparent;border:2px solid #c8a96a;color:#c8a96a;width:100%;margin-top:10px}
+.res{width:100%;max-width:900px;display:none;grid-template-columns:1fr 1fr;gap:15px;margin-top:25px}
+.card{background:#111;padding:10px;border-radius:16px;position:relative}
+.card img{width:100%;border-radius:12px}
+.blur{filter:blur(12px)}
+.lock{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.85);padding:15px 20px;border-radius:15px;text-align:center;border:1px solid #c8a96a;z-index:2}
+.price{background:#111;border:1px solid #333;padding:12px;border-radius:12px;margin-top:15px;text-align:center;max-width:500px;width:100%}
+</style>
+</head>
+<body>
+
+<h1>C PHOTO <span>HD x3</span></h1>
+<p style="color:#777">HD ULTRA - 2000 FC</p>
+
+<div class="box" id="box" onclick="file.click()">
+<p id="txt">📸 Choisis photo</p>
+<img id="prev">
+</div>
+
+<input type="file" id="file" hidden accept="image/*">
+<button class="btn" id="go">AMÉLIORER x3</button>
+<p id="stat" style="margin-top:15px;color:#c8a96a;font-weight:bold"></p>
+
+<div class="price">
+💰 Prix HD x3: <b style="color:#c8a96a">2000 FC</b> | Paiement WhatsApp
+</div>
+
+<div class="res" id="res">
+  <div class="card">
+    <p>AVANT</p>
+    <img id="before">
+  </div>
+  <div class="card">
+    <p>APRÈS x3 <span style="color:#c8a96a">HD</span></p>
+    <div style="position:relative">
+      <img id="after" class="blur">
+      <div class="lock" id="lockBox">
+        <p>🔒 HD BLOQUÉ</p>
+        <p style="font-size:0.8rem;margin:5px 0">Paye 2000 FC pour débloquer</p>
+      </div>
+    </div>
+    <a id="wa" class="btn" style="margin-top:10px;background:#25D366;color:#fff" target="_blank">
+      💬 PAYER 2000 FC SUR WHATSAPP
+    </a>
+    <a id="dl" class="btn" style="display:none;margin-top:10px" download="C-PHOTO-HD-x3.jpg">
+      📥 TÉLÉCHARGER HD x3
+    </a>
+    <button class="btn btn2" id="restart">🔄 RECOMMENCER</button>
+  </div>
+</div>
+
+<canvas id="canvas" style="display:none"></canvas>
+
+<script>
+const file=document.getElementById('file');
+const prev=document.getElementById('prev');
+const txt=document.getElementById('txt');
+const before=document.getElementById('before');
+const after=document.getElementById('after');
+const res=document.getElementById('res');
+const stat=document.getElementById('stat');
+const go=document.getElementById('go');
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const restart=document.getElementById('restart');
+const wa=document.getElementById('wa');
+const dl=document.getElementById('dl');
+const lockBox=document.getElementById('lockBox');
+
+let loadedImg=null;
+let finalURL='';
+const MYNUM='243979312394';
+
+file.onchange=e=>{
+ const f=e.target.files[0];
+ if(!f) return;
+ const r=new FileReader();
+ r.onload=ev=>{
+  prev.src=ev.target.result;
+  prev.style.display='block';
+  txt.style.display='none';
+  before.src=ev.target.result;
+  loadedImg=new Image();
+  loadedImg.onload=()=>stat.textContent='Prêt ✅ Clique x3';
+  loadedImg.src=ev.target.result;
+ };
+ r.readAsDataURL(f);
+};
+
+go.onclick=()=>{
+ if(!loadedImg){alert('Choisis photo');return;}
+ stat.textContent='HD x3 en cours...';
+ go.disabled=true;
+ setTimeout(()=>{
+  let w=loadedImg.width*3;
+  let h=loadedImg.height*3;
+  if(w>3000){h=h*3000/w; w=3000;}
+  canvas.width=w;
+  canvas.height=h;
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  ctx.filter='contrast(1.22) brightness(1.08) saturate(1.3)';
+  ctx.drawImage(loadedImg,0,0,w,h);
+  finalURL=canvas.toDataURL('image/jpeg',0.96);
+  after.src=finalURL;
+  dl.href=finalURL;
+  res.style.display='grid';
+  stat.textContent='Aperçu prêt ✅ Paye 2000 FC pour débloquer';
+  go.disabled=false;
+  const msg=encodeURIComponent("Salut C PHOTO HD 👋 Je veux débloquer ma photo HD x3 pour 2000 FC. Comment payer?");
+  wa.href=`https://wa.me/${MYNUM}?text=${msg}`;
+ },700);
+};
+
+wa.onclick=()=>{
+ setTimeout(()=>{
+  if(confirm("Le client a payé les 2000 FC sur WhatsApp? Clique OK pour débloquer")){
+   after.classList.remove('blur');
+   lockBox.style.display='none';
+   dl.style.display='block';
+   wa.textContent='✅ PAIEMENT REÇU';
+   wa.style.background='#666';
+  }
+ },800);
+};
+
+restart.onclick=()=>{
+ prev.src='';
+ prev.style.display='none';
+ txt.style.display='block';
+ before.src='';
+ after.src='';
+ finalURL='';
+ res.style.display='none';
+ stat.textContent='';
+ file.value='';
+ loadedImg=null;
+ after.classList.add('blur');
+ lockBox.style.display='block';
+ dl.style.display='none';
+ wa.textContent='💬 PAYER 2000 FC SUR WHATSAPP';
+ wa.style.background='#25D366';
+ window.scrollTo({top:0,behavior:'smooth'});
+};
+</script>
+
+</body>
+ </html>
